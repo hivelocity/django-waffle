@@ -2,9 +2,26 @@ from django.conf import settings
 from django.utils.encoding import smart_str
 
 from waffle import COOKIE_NAME, TEST_COOKIE_NAME
+from waffle.models import Flag
 
 
 class WaffleMiddleware(object):
+    def process_request(self, request):
+        if request.user.is_authenticated():
+            for cookie in request.COOKIES:
+                flag = Flag.objects.filter(name=cookie.strip('dwf_'))
+                if len(flag) != 0:
+                    flag = flag[0]
+                    pk = request.user.pk
+                    if flag.rollout is True:
+                        if pk not in flag.user_pks:
+                            flag.user_pks.append(request.user.pk)
+                            flag.save()
+                    else:
+                        if pk in flag.user_pks:
+                            flag.user_pks.remove(pk)
+                            flag.save()
+
     def process_response(self, request, response):
         secure = getattr(settings, 'WAFFLE_SECURE', False)
         max_age = getattr(settings, 'WAFFLE_MAX_AGE', 2592000)  # 1 month
