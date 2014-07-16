@@ -6,6 +6,7 @@ except ImportError:
 from django.contrib.auth.models import Group
 from django.db import models
 
+from waffle import fields
 from waffle.compat import User
 
 
@@ -47,6 +48,8 @@ class Flag(models.Model):
         help_text=('Date when this Flag was created.'))
     modified = models.DateTimeField(default=datetime.now, help_text=(
         'Date when this Flag was last modified.'))
+    user_pks = fields.ListField(blank=True, null=True, help_text=(
+        'List of primary keys for user with active flag in rollout mode.'))
 
     def __unicode__(self):
         return self.name
