@@ -9,9 +9,8 @@ class WaffleMiddleware(object):
     def process_request(self, request):
         if request.user.is_authenticated():
             for cookie in request.COOKIES:
-                flag = Flag.objects.filter(name=cookie.strip('dwf_'))
-                if len(flag) != 0:
-                    flag = flag[0]
+                if Flag.objects.filter(name=cookie.strip('dwf_')).exists():
+                    flag = Flag.objects.get(name=cookie.strip('dwf_'))
                     pk = request.user.pk
                     if flag.rollout is True:
                         if pk not in flag.user_pks:
@@ -19,6 +18,10 @@ class WaffleMiddleware(object):
                             flag.save()
                     else:
                         if pk in flag.user_pks:
+                            flag.user_pks.remove(pk)
+                            flag.save()
+                    for pk in flag.user_pks:
+                        if not User.objects.filter(pk=pk).exists():
                             flag.user_pks.remove(pk)
                             flag.save()
 
