@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.utils.encoding import smart_str
+from django.contrib.auth.models import User
 
 from waffle import COOKIE_NAME, TEST_COOKIE_NAME
 from waffle.models import Flag
