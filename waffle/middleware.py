@@ -11,20 +11,11 @@ class WaffleMiddleware(object):
         if request.user.is_authenticated():
             for cookie in request.COOKIES:
                 if Flag.objects.filter(name=cookie.strip('dwf_')).exists():
-                    flag = Flag.objects.get(name=cookie.strip('dwf_'))
                     pk = request.user.pk
+                    flag = Flag.objects.get(name=cookie.strip('dwf_'))
                     if flag.rollout is True:
                         if pk not in flag.user_pks:
-                            # Add user pk to db
                             flag.user_pks.append(request.user.pk)
-                            flag.save()
-                        else:
-                            # Give user the proper cookie
-                            request.COOKIES[cookie] = True
-
-                    else:
-                        if pk in flag.user_pks:
-                            flag.user_pks.remove(pk)
                             flag.save()
                     for pk in flag.user_pks:
                         if not User.objects.filter(pk=pk).exists():
@@ -52,4 +43,13 @@ class WaffleMiddleware(object):
                 value = request.waffle_tests[k]
                 response.set_cookie(name, value=value)
 
+        # give user cookie true if in database for flag
+        if request.user.is_authenticated():
+            pk = request.user.pk
+            flags = Flag.objects.all()
+            for flag in flags:
+                if pk in flag.user_pks:
+                    response.delete_cookie(str('dwf_' + flag.name))
+                    response.set_cookie(str('dwf_' + flag.name), value=True,
+                                        max_age=2592000, secure=secure)
         return response
