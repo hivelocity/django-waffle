@@ -14,7 +14,7 @@ class WaffleMiddleware(object):
                     pk = request.user.pk
                     flag = Flag.objects.get(name=cookie.strip('dwf_'))
                     if flag.rollout is True:
-                        if pk not in flag.user_pks:
+                        if pk not in flag.user_pks and request.COOKIES.get("dwf_" + flag.name) == 'True':
                             flag.user_pks.append(request.user.pk)
                             flag.save()
                     for pk in flag.user_pks:
