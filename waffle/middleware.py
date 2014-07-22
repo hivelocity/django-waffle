@@ -15,8 +15,13 @@ class WaffleMiddleware(object):
                     pk = request.user.pk
                     if flag.rollout is True:
                         if pk not in flag.user_pks:
+                            # Add user pk to db
                             flag.user_pks.append(request.user.pk)
                             flag.save()
+                        else:
+                            # Give user the proper cookie
+                            request.COOKIES[cookie] = True
+
                     else:
                         if pk in flag.user_pks:
                             flag.user_pks.remove(pk)
