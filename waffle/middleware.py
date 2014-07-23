@@ -49,7 +49,10 @@ class WaffleMiddleware(object):
             flags = Flag.objects.all()
             for flag in flags:
                 if pk in flag.user_pks:
-                    response.delete_cookie(str('dwf_' + flag.name))
+                    try:
+                        response.delete_cookie(str('dwf_' + flag.name))
+                    except:
+                        pass
                     response.set_cookie(str('dwf_' + flag.name), value=True,
                                         max_age=2592000, secure=secure)
         return response
